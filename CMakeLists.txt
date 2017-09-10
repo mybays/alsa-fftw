@@ -25,3 +25,13 @@ target_link_libraries (record LINK_PUBLIC asound)
 set(SOURCE_FILES playback.c)
 add_executable(playback ${SOURCE_FILES})
 target_link_libraries (playback LINK_PUBLIC asound)
+
+
+set(SOURCE_FILES alsainfo.c)
+add_executable(alsainfo ${SOURCE_FILES})
+target_link_libraries (alsainfo LINK_PUBLIC asound)
+
+
+set(SOURCE_FILES setting.c)
+add_executable(setting ${SOURCE_FILES})
+target_link_libraries (setting LINK_PUBLIC asound)
