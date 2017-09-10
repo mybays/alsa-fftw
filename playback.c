@@ -39,12 +39,13 @@ int main(int argc,char *argv[])
   snd_pcm_hw_params_set_format(handle, params,SND_PCM_FORMAT_S16_LE);
 
   /* Two channels (stereo) */
-  snd_pcm_hw_params_set_channels(handle, params, 1);
+  snd_pcm_hw_params_set_channels(handle, params, 2);
 
   /* 44100 bits/second sampling rate (CD quality) */
   unsigned int val = 48000;
   int dir;
   snd_pcm_hw_params_set_rate_near(handle, params, &val, &dir);
+  fprintf(stderr, "freq: %d\n",val);
 
   /* Set period size to 32 frames. */
   snd_pcm_uframes_t frames = 48;
@@ -61,8 +62,11 @@ int main(int argc,char *argv[])
   /* Use a buffer large enough to hold one period */
   snd_pcm_hw_params_get_period_size(params, &frames,&dir);
 
-  int size = frames * 2; /* 2 bytes/sample, 2 channels */
+  int size = frames * 4; /* 2 bytes/sample, 2 channels */
+  fprintf(stderr, "buffer size:%d\n",size);
   char *buffer = (char *) malloc(size);
+
+  char *buffer2 = (char *) malloc(size/2);
 
   /* We want to loop for 5 seconds */
   snd_pcm_hw_params_get_period_time(params, &val, &dir);
@@ -73,17 +77,33 @@ int main(int argc,char *argv[])
   while (loops > 0)
   {
     loops--;
-    rc = read(0, buffer, size);
+    rc = read(0, buffer2, size/2);
     if (rc == 0)
     {
       fprintf(stderr, "end of file on input\n");
       break;
     }
-    else if (rc != size)
+    else if (rc != size/2)
     {
       fprintf(stderr,"short read: read %d bytes\n", rc);
     }
-    rc = snd_pcm_writei(handle, buffer, frames);
+    int i;
+    for(i=0;i<size/2;i++)
+    {
+      if(i%2 == 0)
+      {
+        buffer[2*i]=buffer2[i];
+        buffer[2*i+2]=buffer2[i];
+      }
+      else
+      {
+        buffer[2*i-1]=buffer2[i];
+        buffer[2*i+1]=buffer2[i];
+      }
+      
+    }
+
+    rc = snd_pcm_writei(handle, buffer,frames);
     if (rc == -EPIPE)
     {
       /* EPIPE means underrun */
