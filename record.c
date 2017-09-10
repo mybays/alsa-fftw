@@ -34,12 +34,10 @@ int main(int argc,char *argv[])
   /* Set the desired hardware parameters. */
 
   /* Non Interleaved mode */
-  snd_pcm_hw_params_set_access(handle, params,
-                      SND_PCM_ACCESS_RW_NONINTERLEAVED);
+  snd_pcm_hw_params_set_access(handle, params,SND_PCM_ACCESS_RW_INTERLEAVED);
 
   /* Signed 16-bit little-endian format */
-  snd_pcm_hw_params_set_format(handle, params,
-                              SND_PCM_FORMAT_S16_LE);
+  snd_pcm_hw_params_set_format(handle, params,SND_PCM_FORMAT_S16_LE);
 
   /* Two channels (stereo) */
   //snd_pcm_hw_params_set_channels(handle, params, 2);
@@ -49,53 +47,51 @@ int main(int argc,char *argv[])
   int dir;
   /* 44100 bits/second sampling rate (CD quality) */
   unsigned int val = 48000;
-  snd_pcm_hw_params_set_rate_near(handle, params, 
-                                  &val, &dir);
+  snd_pcm_hw_params_set_rate_near(handle, params, &val, &dir);
 
   /* Set period size to 32 frames. */
   snd_pcm_uframes_t frames = 48;
-  snd_pcm_hw_params_set_period_size_near(handle, 
-                              params, &frames, &dir);
+  snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
 
   /* Write the parameters to the driver */
   rc = snd_pcm_hw_params(handle, params);
-  if (rc < 0) {
-    fprintf(stderr,
-            "unable to set hw parameters: %s\n",
-            snd_strerror(rc));
+  if (rc < 0)
+  {
+    fprintf(stderr,"unable to set hw parameters: %s\n",snd_strerror(rc));
     exit(1);
   }
 
   /* Use a buffer large enough to hold one period */
-  snd_pcm_hw_params_get_period_size(params,
-                                      &frames, &dir);
+  snd_pcm_hw_params_get_period_size(params,&frames, &dir);
   int size = frames * 2; /* 2 bytes/sample, 2 channels */
   char *buffer = (char *) malloc(size);
 
   /* We want to loop for 5 seconds */
-  snd_pcm_hw_params_get_period_time(params,
-                                         &val, &dir);
+  snd_pcm_hw_params_get_period_time(params,&val, &dir);
   long loops = 5000000 / val;
 
-  while (loops > 0) {
+  while (loops > 0)
+  {
     loops--;
     rc = snd_pcm_readi(handle, buffer, frames);
-    if (rc == -EPIPE) {
+    if (rc == -EPIPE)
+    {
       /* EPIPE means overrun */
       fprintf(stderr, "overrun occurred\n");
       snd_pcm_prepare(handle);
-    } else if (rc < 0) {
-      fprintf(stderr,
-              "error from read: %s\n", 
-              snd_strerror(rc));
-    } else if (rc != (int)frames) {
+    }
+    else if (rc < 0)
+    {
+      fprintf(stderr,"error from read: %s\n", snd_strerror(rc));
+    }
+    else if (rc != (int)frames)
+    {
       fprintf(stderr, "short read, read %d frames\n", rc);
     }
     ///*
     rc = write(1, buffer, size);
     if (rc != size)
-      fprintf(stderr, 
-              "short write: wrote %d bytes\n", rc);
+      fprintf(stderr, "short write: wrote %d bytes\n", rc);
     //*/
   }
 
