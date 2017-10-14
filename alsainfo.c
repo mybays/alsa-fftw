@@ -44,5 +44,11 @@ int main()
     printf("  %s\n", snd_pcm_state_name((snd_pcm_state_t)val));
   }
 
+  printf("\n7.PCM type:\n");
+  for (val = 0; val <= SND_PCM_TYPE_LAST; val++)
+  {
+    printf("  %s\n", snd_pcm_type_name((snd_pcm_type_t)val));
+  }
+
   return 0;
 }
